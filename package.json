@@ -1,0 +1,23 @@
+{
+  "name": "sqlitexplorer",
+  "version": "0.8.0",
+  "description": "embeddable explorer for sqlite and spatialite",
+  "main": "sqlitexplorer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexbodn/sqlitexplorer"
+  },
+  "keywords": [
+    "sqlite",
+    "wasm",
+    "spatialite",
+    "spl.js",
+    "gui",
+    "explore"
+  ],
+  "author": "alex bodnaru",
+  "license": "MIT"
+}
