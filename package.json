@@ -3,6 +3,7 @@
   "version": "0.8.0",
   "description": "embeddable explorer for sqlite and spatialite",
   "main": "sqlitexplorer.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,5 +20,14 @@
     "explore"
   ],
   "author": "alex bodnaru",
-  "license": "MIT"
+  "license": "LGPLv3",
+  "optionalDependencies": {
+    "@sqlite.org/sqlite-wasm": "^3.45.1-build1",
+    "leaflet": "^1.9.4",
+    "ol": "^9.0.0",
+    "ol-layerswitcher": "^4.1.1",
+    "proj4": "^2.10.0",
+    "proj4leaflet": "^1.0.2",
+    "spl.js": "^0.1.0"
+  }
 }
