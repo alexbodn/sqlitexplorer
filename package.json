@@ -22,12 +22,15 @@
   "author": "alex bodnaru",
   "license": "LGPLv3",
   "optionalDependencies": {
+    "@nieuwlandgeo/sldreader": "^0.4.3",
+    "@nieuwlandgeo/slsreader": "*",
     "@sqlite.org/sqlite-wasm": "^3.45.1-build1",
     "leaflet": "^1.9.4",
     "ol": "^9.0.0",
     "ol-layerswitcher": "^4.1.1",
     "proj4": "^2.10.0",
     "proj4leaflet": "^1.0.2",
+    "slsreader": "*",
     "spl.js": "^0.1.0"
   }
 }
