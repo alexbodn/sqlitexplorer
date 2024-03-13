@@ -27,20 +27,16 @@
 	<head>
 		<meta charset="utf-8" />
 		<script>
-			function cssLoad(src) {
-				if (!src) {
-					return Promise.resolve();
-				}
-				return new Promise((resolve, reject) => {
-					let s = document.createElement('link');
-					s.rel = 'stylesheet';
-					s.href = src;
-					s.onload = resolve;
-					s.onerror = reject;
-					document.head.append(s);
-				});
-			}
+let displayLeaflet = true;
+let type = 'spl';
+//let type = 'sql';
+//let dbFile = './tests/files/dbs/DCTour.gpkg';
+let dbFile = './tests/files/dbs/StLouis.gpkg';
+//let dbFile = './tests/files/dbs/db_small.sqlite';
 		</script>
+		
+		
+		
 		<script>
 			async function jsLoad(src, module=false) {
 				if (!src) {
@@ -52,23 +48,10 @@
 					if (module) {
 						s.type='module';
 					}
+					s.async = false;
 					s.onload = resolve;
 					s.onerror = reject;
 					document.head.append(s);
-				});
-			}
-		</script>
-		<script>
-			function prependScript(url) {
-				return new Promise((resolve, reject) => {
-					let s = document.createElement('script');
-					s.src = url;
-					s.onload = resolve;
-					s.onerror = reject;
-					document.currentScript.parentNode.insertBefore(
-						s,
-						document.currentScript,
-					);
 				});
 			}
 		</script>
@@ -138,22 +121,45 @@
 				spl.mount('/proj', [{name: 'proj.db', data: projData}]);
 				
 				fetch(dbUrl)
-					.then(resp => resp.arrayBuffer())
-					.then(dbData => spl.db(dbData))
-					.then(db => {
+				.then(resp => resp.arrayBuffer())
+				.then(dbData => spl.db(dbData))
+				.then(db => {
+					try {
 						db.read(`
 							--nga gpkg have these hacks
-							drop view if exists spatial_ref_sys;
-							drop view if exists st_spatial_ref_sys;
-							drop view if exists geometry_columns;
-							drop view if exists st_geometry_columns;
-						`)
-						.read(init_spl({withgpkg, autogpkg}))
-						.then((splDb) => {
-							window.xplorer.setDb(splDb);
-						})
-					})
-					;
+							PRAGMA writable_schema = ON;
+							--however drop view if exists
+							--is the goto solution to these
+							--removals, sqlite drop view if
+							--exists throws an error if exists
+							--a table with the same name,
+							--as it exists in a spatialite db,
+							--and they fail to understand it's
+							--wrong.
+							DELETE
+							FROM sqlite_master
+							WHERE type='view' AND name in (
+								'spatial_ref_sys',
+								'st_spatial_ref_sys',
+								'geometry_columns',
+								'st_geometry_columns'
+							);
+							PRAGMA writable_schema = RESET;
+						`);
+					}
+					catch(err) {
+					}
+					finally {
+						return db;
+					}
+				})
+				.then((db) => {
+					return db.read(init_spl({withgpkg, autogpkg}));
+				})
+				.then((db) => {
+					window.xplorer.setDb(db);
+				})
+				;
 			}
 			
 			function init_spl({projFile='/proj/proj.db', withgpkg=1, autogpkg=1}={}) {
@@ -218,9 +224,6 @@
 	</head>
 	<body>
 		<script>
-let dbUrl = new URL(
-	'./tests/files/dbs/DCTour.gpkg', window.location.href).toString();
-
 Promise.all([
 	jsLoad('./lib/map_show.js'),
 ])
@@ -231,14 +234,10 @@ Promise.all([
 	]);
 })
 .then(() => {
-	window.DisplayClass =
-	DisplayLeaflet
-	//DisplayOpenLayers
-	;
+	window.DisplayClass = displayLeaflet ?
+		DisplayLeaflet : DisplayOpenLayers;
 	return Promise.all([
 		jsLoad("./lib/sqlitexplorer.js"),
-		jsLoad("./lib/loadspl.js", true),
-		jsLoad("./node_modules/@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3.js"),
 		window.DisplayClass.resources()
 	]);
 })
@@ -257,9 +256,23 @@ Promise.all([
 		//osm_layer()
 	);
 	window.log = window.xplorer.log;
+	return Promise.resolve();
 })
 .then(() => {
-	demosql(dbUrl);
+	return Promise.all([
+		jsLoad("./lib/loadspl.js", true),
+		jsLoad("./node_modules/@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3.js"),
+	]);
+})
+.then(() => {
+	let dbUrl = new URL(dbFile,
+		window.location.href).toString();
+	if (type == 'spl') {
+		demospl(dbUrl);
+	}
+	else {
+		demosql(dbUrl);
+	}
 });
 		</script>
 	</body>
