@@ -12,6 +12,8 @@
     "url": "git+https://github.com/alexbodn/sqlitexplorer.git"
   },
   "files": [
+  	"lib/*",
+  	"examples.html"
   ],
   "keywords": [
     "sqlite",
