@@ -1,6 +1,6 @@
 {
   "name": "sqlitexplorer",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "embeddable explorer for sqlite and spatialite",
   "main": "sqlitexplorer.js",
   "type": "module",
@@ -12,8 +12,8 @@
     "url": "git+https://github.com/alexbodn/sqlitexplorer.git"
   },
   "files": [
-  	"lib/*",
-  	"examples.html"
+    "lib/*",
+    "examples.html"
   ],
   "keywords": [
     "sqlite",
