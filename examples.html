@@ -27,12 +27,13 @@
 	<head>
 		<meta charset="utf-8" />
 		<script>
-let displayLeaflet = true;
+let displayLeaflet = false;
 let type = 'spl';
 //let type = 'sql';
 //let dbFile = './tests/files/dbs/DCTour.gpkg';
 //let dbFile = './tests/files/dbs/StLouis.gpkg';
-let dbFile = './tests/files/dbs/db_small.sqlite';
+let dbFile = './tests/files/dbs/london.gpkg';
+//let dbFile = './tests/files/dbs/db_small.sqlite';
 		</script>
 		
 		
@@ -115,51 +116,53 @@ let dbFile = './tests/files/dbs/db_small.sqlite';
 				
 				const projdbUrl = new URL(
 					'./node_modules/spl.js/dist/proj/proj.db', window.location.href).toString();
-				let projData = await fetch(projdbUrl)
-					.then(resp => resp.arrayBuffer());
-				
-				spl.mount('/proj', [{name: 'proj.db', data: projData}]);
-				
-				fetch(dbUrl)
-				.then(resp => resp.arrayBuffer())
-				.then(dbData => spl.db(dbData))
-				.then(db => {
-					try {
-						db.read(`
-							--nga gpkg have these hacks
-							PRAGMA writable_schema = ON;
-							--however drop view if exists
-							--is the goto solution to these
-							--removals, sqlite drop view if
-							--exists throws an error if exists
-							--a table with the same name,
-							--as it exists in a spatialite db,
-							--and they fail to understand it's
-							--wrong.
-							DELETE
-							FROM sqlite_master
-							WHERE type='view' AND name in (
-								'spatial_ref_sys',
-								'st_spatial_ref_sys',
-								'geometry_columns',
-								'st_geometry_columns'
-							);
-							PRAGMA writable_schema = RESET;
-						`);
-					}
-					catch(err) {
-					}
-					finally {
-						return db;
-					}
-				})
-				.then((db) => {
-					return db.read(init_spl({withgpkg, autogpkg}));
-				})
-				.then((db) => {
-					window.xplorer.setDb(db);
-				})
-				;
+				let projPromise = fetch(projdbUrl)
+					.then(resp => resp.arrayBuffer())
+					.then(projData => {
+						return spl.mount('/proj', [{name: 'proj.db', data: projData}]);
+					});
+					
+				let dataPromise = fetch(dbUrl)
+					.then(resp => resp.arrayBuffer())
+					.then(dbData => spl.db(dbData))
+					.then(db => {
+						try {
+							db.read(`
+								--nga gpkg have these hacks
+								PRAGMA writable_schema = ON;
+								--however drop view if exists
+								--is the goto solution to these
+								--removals, sqlite drop view if
+								--exists throws an error if exists
+								--a table with the same name,
+								--if it exists in a spatialite db,
+								--and they fail to understand it's
+								--wrong.
+								DELETE
+								FROM sqlite_master
+								WHERE type='view' AND name in (
+									'spatial_ref_sys',
+									'st_spatial_ref_sys',
+									'geometry_columns',
+									'st_geometry_columns'
+								);
+								PRAGMA writable_schema = RESET;
+							`);
+						}
+						catch(err) {
+						}
+						finally {
+							return db;
+						}
+					});
+				Promise.all([projPromise, dataPromise])
+					.then(([proj, db]) => {
+						return db.read(init_spl({withgpkg, autogpkg}));
+					})
+					.then((db) => {
+						window.xplorer.setDb(db);
+					})
+					;
 			}
 			
 			function init_spl({projFile='/proj/proj.db', withgpkg=1, autogpkg=1}={}) {
@@ -247,7 +250,7 @@ Promise.all([
 	let div = document.querySelector('div#sqlDiv');
 	window.xplorer = new SQLiteXplorer(div, {
 		build_map: window.DisplayClass,
-		withProj4JS: true,
+		withProj4JS: false,
 	});
 	const map = window.xplorer.getMap();
 	map._addLayer(
