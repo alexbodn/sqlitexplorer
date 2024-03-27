@@ -27,13 +27,14 @@
 	<head>
 		<meta charset="utf-8" />
 		<script>
-let displayLeaflet = false;
+let displayLeaflet = true;
 let type = 'spl';
 //let type = 'sql';
-//let dbFile = './tests/files/dbs/DCTour.gpkg';
+let dbFile = './tests/files/dbs/DCTour.gpkg';
 //let dbFile = './tests/files/dbs/StLouis.gpkg';
-let dbFile = './tests/files/dbs/london.gpkg';
+//let dbFile = './tests/files/dbs/london.gpkg';
 //let dbFile = './tests/files/dbs/db_small.sqlite';
+let withProj4JS = false;
 		</script>
 		
 		
@@ -170,6 +171,7 @@ let dbFile = './tests/files/dbs/london.gpkg';
 					PRAGMA foreign_keys = 1;
 					PRAGMA recursive_triggers = 1;`;
 				let init = `
+					SELECT PROJ_SetDatabasePath('${projFile}'); -- set proj.db path
 					SELECT initspatialmetadatafull(1)
 					where not exists (
 						SELECT 1
@@ -177,7 +179,6 @@ let dbFile = './tests/files/dbs/london.gpkg';
 						WHERE name LIKE 'geometry_columns'
 					)
 					;
-					SELECT PROJ_SetDatabasePath('${projFile}'); -- set proj.db path
 					`;
 				let gpkg = `
 					/**/
@@ -250,7 +251,7 @@ Promise.all([
 	let div = document.querySelector('div#sqlDiv');
 	window.xplorer = new SQLiteXplorer(div, {
 		build_map: window.DisplayClass,
-		withProj4JS: false,
+		withProj4JS,
 	});
 	const map = window.xplorer.getMap();
 	map._addLayer(
