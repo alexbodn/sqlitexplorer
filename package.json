@@ -1,6 +1,6 @@
 {
   "name": "sqlitexplorer",
-  "version": "0.10.4",
+  "version": "0.10.5",
   "description": "embeddable explorer for sqlite and spatialite",
   "main": "sqlitexplorer.js",
   "type": "module",
